@@ -469,6 +469,8 @@ message ActionExecuted {
 
   // List of paths to log files
   repeated File action_metadata_logs = 10;
+
+  int64 action_duration = 11;
 }
 
 // Collection of all output files belonging to that output group.

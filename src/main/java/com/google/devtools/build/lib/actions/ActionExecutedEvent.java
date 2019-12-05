@@ -157,7 +157,8 @@ public class ActionExecutedEvent implements BuildEventWithConfiguration, Progres
     BuildEventStreamProtos.ActionExecuted.Builder actionBuilder =
         BuildEventStreamProtos.ActionExecuted.newBuilder()
             .setSuccess(getException() == null)
-            .setType(action.getMnemonic());
+            .setType(action.getMnemonic())
+            .setActionDuration(666);
 
     if (exception != null && exception.getExitCode() != null) {
       actionBuilder.setExitCode(exception.getExitCode().getNumericExitCode());
