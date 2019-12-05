@@ -1,11 +1,3 @@
-load("@rules_java//java:defs.bzl", "java_proto_library")
-load("//tools/build_rules:genproto.bzl", "cc_grpc_library")
-load("//tools/build_rules:utilities.bzl", "java_library_srcs")
-load("//third_party/protobuf/3.6.1:protobuf.bzl", "py_proto_library")
-load("//third_party/grpc:build_defs.bzl", "java_grpc_library")
-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
-load("@rules_proto//proto:defs.bzl", "proto_library")
-
 package(default_visibility = ["//visibility:public"])
 
 exports_files(
@@ -39,62 +31,16 @@ FILES = [
     srcs = [s + ".proto"],
 ) for s in FILES]
 
-[java_proto_library(
-    name = s + "_java_proto",
-    deps = [":" + s + "_proto"],
-) for s in FILES]
-
-[java_library_srcs(
-    name = s + "_java_proto_srcs",
-    deps = [":" + s + "_java_proto"],
-) for s in FILES]
-
 proto_library(
     name = "analysis_proto",
     srcs = ["analysis.proto"],
     deps = [":build_proto"],
 )
 
-py_proto_library(
-    name = "analysis_py_proto",
-    srcs = ["analysis.proto"],
-    default_runtime = "//third_party/protobuf:protobuf_python",
-    protoc = "//third_party/protobuf:protoc",
-    deps = [":build_pb_py"],
-)
-
-java_proto_library(
-    name = "analysis_java_proto",
-    deps = [":analysis_proto"],
-)
-
-java_library_srcs(
-    name = "analysis_java_proto_srcs",
-    deps = [":analysis_java_proto"],
-)
-
 proto_library(
     name = "analysis_v2_proto",
     srcs = ["analysis_v2.proto"],
     deps = [":build_proto"],
-)
-
-py_proto_library(
-    name = "analysis_v2_py_proto",
-    srcs = ["analysis_v2.proto"],
-    default_runtime = "//third_party/protobuf:protobuf_python",
-    protoc = "//third_party/protobuf:protoc",
-    deps = [":build_pb_py"],
-)
-
-java_proto_library(
-    name = "analysis_v2_java_proto",
-    deps = [":analysis_v2_proto"],
-)
-
-java_library_srcs(
-    name = "analysis_v2_java_proto_srcs",
-    deps = [":analysis_v2_java_proto"],
 )
 
 # This new option tagging method is in flux while being applied to the options
@@ -108,35 +54,11 @@ proto_library(
     visibility = ["//visibility:private"],
 )
 
-java_proto_library(
-    name = "option_filters_java_proto",
-    visibility = ["//src:__subpackages__"],
-    deps = [":option_filters_proto"],
-)
-
-java_library_srcs(
-    name = "option_filters_java_proto_srcs",
-    visibility = ["//visibility:private"],
-    deps = [":option_filters_java_proto"],
-)
-
 proto_library(
     name = "command_line_proto",
     srcs = ["command_line.proto"],
     visibility = ["//src/main/java/com/google/devtools/build/lib/buildeventstream/proto:__pkg__"],
     deps = [":option_filters_proto"],
-)
-
-java_proto_library(
-    name = "command_line_java_proto",
-    visibility = ["//src:__subpackages__"],
-    deps = [":command_line_proto"],
-)
-
-java_library_srcs(
-    name = "command_line_java_proto_srcs",
-    visibility = ["//visibility:private"],
-    deps = [":command_line_java_proto"],
 )
 
 # Proto needed by singlejar and embedded into the java tools archive.
@@ -154,45 +76,6 @@ filegroup(
     visibility = ["//src/tools/singlejar:__pkg__"],
 )
 
-cc_proto_library(
-    name = "desugar_deps_cc_proto",
-    deps = [":desugar_deps_proto"],
-)
-
-cc_proto_library(
-    name = "worker_protocol_cc_proto",
-    deps = [":worker_protocol_proto"],
-)
-
-java_grpc_library(
-    name = "command_server_java_grpc",
-    srcs = [":command_server_proto"],
-    deps = [":command_server_java_proto"],
-)
-
-cc_grpc_library(
-    name = "command_server_cc_proto",
-    src = "command_server.proto",
-)
-
-py_proto_library(
-    name = "build_pb_py",
-    srcs = ["build.proto"],
-    default_runtime = "//third_party/protobuf:protobuf_python",
-    protoc = "//third_party/protobuf:protoc",
-)
-
-java_library_srcs(
-    name = "profile_java_proto_srcs",
-    visibility = ["//visibility:private"],
-    deps = ["//third_party/pprof:profile_java_proto"],
-)
-
-cc_proto_library(
-    name = "execution_statistics_cc_proto",
-    deps = [":execution_statistics_proto"],
-)
-
 proto_library(
     name = "remote_execution_log_proto",
     srcs = ["remote_execution_log.proto"],
@@ -203,16 +86,6 @@ proto_library(
         "@googleapis//:google_rpc_status_proto",
         "@remoteapis//:build_bazel_remote_execution_v2_remote_execution_proto",
     ],
-)
-
-java_proto_library(
-    name = "remote_execution_log_java_proto",
-    deps = [":remote_execution_log_proto"],
-)
-
-java_library_srcs(
-    name = "remote_execution_log_java_proto_srcs",
-    deps = [":remote_execution_log_java_proto"],
 )
 
 filegroup(
@@ -231,4 +104,36 @@ filegroup(
         ":profile_java_proto_srcs",
         ":remote_execution_log_java_proto_srcs",
     ],
+)
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "command_line_go_proto",
+    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
+    proto = ":command_line_proto",
+)
+
+go_proto_library(
+    name = "invocation_policy_go_proto",
+    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
+    proto = ":invocation_policy_proto",
+)
+
+go_proto_library(
+    name = "option_filters_go_proto",
+    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
+    proto = ":option_filters_proto",
+)
+
+go_library(
+    name = "go_default_library",
+    embed = [
+        ":command_line_go_proto",
+        ":option_filters_go_proto",
+        ":invocation_policy_go_proto",
+    ],
+    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
+    visibility = ["//visibility:public"],
 )
